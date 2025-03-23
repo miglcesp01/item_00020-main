@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
+import { useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,73 +12,94 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { type Item, CATEGORIES } from "@/lib/types"
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { type Item, CATEGORIES } from "@/lib/types";
 
-// Base schema without unique name validation - matching the original Item type exactly
 export const baseItemSchema = z.object({
   id: z.string(),
   name: z
     .string()
     .min(2, { message: "Name must be at least 2 characters" })
     .max(20, { message: "Name cannot exceed 20 characters" }),
-  description: z.string(),
   category: z.string().min(1, { message: "Please select a category" }),
   quantity: z.coerce
     .number()
     .int()
     .refine((val) => val > 0, { message: "Quantity must be greater than 0" }),
-  price: z.coerce.number().refine((val) => val > 0, { message: "Price must be greater than 0" }),
-  supplier: z.string(),
-  lastUpdated: z.string(), // Make lastUpdated required to match Item type
-})
+  price: z.coerce
+    .number()
+    .refine((val) => val > 0, { message: "Price must be greater than 0" }),
+});
 
-// Type derived from the schema
-export type InventoryItem = z.infer<typeof baseItemSchema>
+export type InventoryItem = z.infer<typeof baseItemSchema>;
 
-// Function to create item schema with name uniqueness validation
-export const createItemSchema = (existingItems: Item[], currentItem?: Item | null) => {
+export const createItemSchema = (
+  existingItems: Item[],
+  currentItem?: Item | null
+) => {
   return baseItemSchema.extend({
     name: baseItemSchema.shape.name.refine(
       (name) => {
-        if (currentItem && name.toLowerCase() === currentItem.name.toLowerCase()) {
-          return true
+        if (
+          currentItem &&
+          name.toLowerCase() === currentItem.name.toLowerCase()
+        ) {
+          return true;
         }
-        return !existingItems.some((i) => i.name.toLowerCase() === name.toLowerCase())
+        return !existingItems.some(
+          (i) => i.name.toLowerCase() === name.toLowerCase()
+        );
       },
-      { message: "An item with this name already exists" },
+      { message: "An item with this name already exists" }
     ),
-  })
-}
+  });
+};
 
 const defaultValues: Item = {
   id: "",
   name: "",
-  description: "",
   category: "",
   quantity: 0,
   price: 0,
-  supplier: "",
-  lastUpdated: new Date().toISOString(), // Ensure we have a valid lastUpdated timestamp
-}
+};
 
 interface ItemDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: (item: Item) => void
-  existingItems: Item[]
-  item?: Item | null
-  mode: "add" | "edit"
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (item: Item) => void;
+  existingItems: Item[];
+  item?: Item | null;
+  mode: "add" | "edit";
 }
 
-export function ItemDialog({ open, onOpenChange, onSave, existingItems, item, mode }: ItemDialogProps) {
-  const isEditing = mode === "edit"
-  
-  const itemSchema = createItemSchema(existingItems, isEditing ? item : null)
-  type ItemFormValues = z.infer<typeof itemSchema>
+export function ItemDialog({
+  open,
+  onOpenChange,
+  onSave,
+  existingItems,
+  item,
+  mode,
+}: ItemDialogProps) {
+  const isEditing = mode === "edit";
+
+  const itemSchema = createItemSchema(existingItems, isEditing ? item : null);
+  type ItemFormValues = z.infer<typeof itemSchema>;
 
   const form = useForm<ItemFormValues>({
     resolver: zodResolver(itemSchema),
@@ -91,7 +112,7 @@ export function ItemDialog({ open, onOpenChange, onSave, existingItems, item, mo
           }
         : defaultValues,
     mode: "onSubmit",
-  })
+  });
 
   useEffect(() => {
     if (open) {
@@ -100,37 +121,33 @@ export function ItemDialog({ open, onOpenChange, onSave, existingItems, item, mo
           ...item,
           quantity: Number(item.quantity),
           price: Number(item.price),
-        })
+        });
       } else {
-        form.reset(defaultValues)
+        form.reset(defaultValues);
       }
     }
-  }, [open, item, isEditing, form])
+  }, [open, item, isEditing, form]);
 
   const onSubmit = (values: ItemFormValues) => {
     const timestamp = new Date().toISOString();
-    
-    // Ensure we have a valid id and all required fields
+
     const itemToSave: Item = {
       ...values,
       id: isEditing && item ? item.id : values.id || generateId(),
-      description: values.description || "",
-      supplier: values.supplier || "",
-      lastUpdated: isEditing ? timestamp : values.lastUpdated || timestamp,
-    }
-    onSave(itemToSave)
-    onOpenChange(false)
-  }
+    };
+    onSave(itemToSave);
+    onOpenChange(false);
+  };
 
-  // Function to generate a simple ID if needed
   const generateId = (): string => {
-    return `item_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 9)}`;
-  }
+    return `item_${Date.now().toString(36)}_${Math.random()
+      .toString(36)
+      .substring(2, 9)}`;
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
-        className="w-[90%] max-w-[90%] sm:w-[500px] sm:max-w-[500px] mx-auto rounded-xl fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+      <DialogContent className="w-[90%] max-w-[90%] sm:w-[500px] sm:max-w-[500px] mx-auto rounded-xl fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Item" : "Add New Item"}</DialogTitle>
           <DialogDescription>
@@ -140,7 +157,10 @@ export function ItemDialog({ open, onOpenChange, onSave, existingItems, item, mo
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-1">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 px-1"
+          >
             <FormField
               control={form.control}
               name="name"
@@ -160,7 +180,11 @@ export function ItemDialog({ open, onOpenChange, onSave, existingItems, item, mo
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
@@ -215,5 +239,5 @@ export function ItemDialog({ open, onOpenChange, onSave, existingItems, item, mo
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

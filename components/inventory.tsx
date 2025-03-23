@@ -11,41 +11,28 @@ import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { InventoryReports } from "@/components/inventory-reports";
 import type { Item } from "@/lib/types";
 
-// Define CATEGORIES here
-const CATEGORIES = ["Electronics", "Furniture", "Stationery"] as const;
-type Category = (typeof CATEGORIES)[number];
-
 // Sample initial data
 const initialItems: Item[] = [
   {
     id: "1",
     name: "Laptop",
-    description: "",
     category: "Electronics",
     quantity: 15,
     price: 1200,
-    supplier: "",
-    lastUpdated: new Date().toISOString(),
   },
   {
     id: "2",
     name: "Office Chair",
-    description: "",
     category: "Furniture",
     quantity: 25,
     price: 250,
-    supplier: "",
-    lastUpdated: new Date().toISOString(),
   },
   {
     id: "3",
     name: "Printer",
-    description: "",
     category: "Electronics",
     quantity: 5,
     price: 350,
-    supplier: "",
-    lastUpdated: new Date().toISOString(),
   },
 ];
 
@@ -67,7 +54,6 @@ export function Inventory() {
     const newItem = {
       ...item,
       id: Date.now().toString(),
-      lastUpdated: new Date().toISOString(),
     };
     setItems([...items, newItem]);
     toast({

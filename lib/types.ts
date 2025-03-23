@@ -1,12 +1,9 @@
 export interface Item {
   id: string
   name: string
-  description?: string // Make optional
   category: string
   quantity: number
   price: number
-  supplier?: string // Make optional
-  lastUpdated: string
 }
 
 // Add predefined categories
