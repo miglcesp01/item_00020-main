@@ -127,4 +127,3 @@ export function InventoryReports({ items }: InventoryReportsProps) {
     </div>
   )
 }
-
