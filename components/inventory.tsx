@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PlusCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InventoryTable } from "@/components/inventory-table";
@@ -11,7 +11,6 @@ import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { InventoryReports } from "@/components/inventory-reports";
 import type { Item } from "@/lib/types";
 
-// Sample initial data
 const initialItems: Item[] = [
   {
     id: "1",
@@ -37,7 +36,6 @@ const initialItems: Item[] = [
 ];
 
 export function Inventory() {
-  const { toast } = useToast();
   const [items, setItems] = useState<Item[]>(initialItems);
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -45,7 +43,6 @@ export function Inventory() {
   const [dialogMode, setDialogMode] = useState<"add" | "edit">("add");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Filter items based on search term (name only)
   const filteredItems = items.filter((item) => {
     return item.name.toLowerCase().includes(searchTerm.toLowerCase());
   });
@@ -56,8 +53,7 @@ export function Inventory() {
       id: Date.now().toString(),
     };
     setItems([...items, newItem]);
-    toast({
-      title: "Item Added",
+    toast.success("Item Added", {
       description: `${item.name} has been added to inventory.`,
     });
   };
@@ -70,8 +66,7 @@ export function Inventory() {
           : item
       )
     );
-    toast({
-      title: "Item Updated",
+    toast.success("Item Updated", {
       description: `${updatedItem.name} has been updated.`,
     });
   };
@@ -99,27 +94,18 @@ export function Inventory() {
 
       setItems(updatedItems);
 
-      const { dismiss } = toast({
-        title: "Item Deleted",
+      const toastId = toast.success("Item Deleted", {
         description: `${deletedItem.name} has been removed from inventory.`,
-        action: (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              dismiss();
-
-              setItems(originalItems);
-
-              toast({
-                title: "Item Restored",
-                description: `${deletedItem.name} has been restored to inventory.`,
-              });
-            }}
-          >
-            Undo
-          </Button>
-        ),
+        action: {
+          label: "Undo",
+          onClick: () => {
+            toast.dismiss(toastId);
+            setItems(originalItems);
+            toast.success("Item Restored", {
+              description: `${deletedItem.name} has been restored to inventory.`,
+            });
+          },
+        },
       });
 
       setIsDeleteDialogOpen(false);

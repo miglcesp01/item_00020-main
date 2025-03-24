@@ -6,7 +6,6 @@ export interface Item {
   price: number
 }
 
-// Add predefined categories
 export const CATEGORIES = [
   "Electronics",
   "Furniture",
